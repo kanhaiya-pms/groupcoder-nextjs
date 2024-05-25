@@ -1,86 +1,179 @@
 "use client"
-import { Button, Select } from 'antd'
-import React, { Fragment, useEffect, useState } from 'react'
+import { Avatar, Button, Form, Input, Select, message } from 'antd'
+import React, { Fragment, useEffect, useRef, useState } from 'react'
+import { UserOutlined } from '@ant-design/icons';
+import TextArea from 'antd/es/input/TextArea';
 const ClientUI = () => {
-    const [logoutloadings, setLogoutLoadings] = useState<boolean[]>([]);
-    const [loadings, setLoadings] = useState<boolean[]>([]);
-
-   
-
-
+    const [loadings, setLoadings] = useState<boolean>();
+    const [quotes, setQuotes] = useState<any[]>([])
+    const [show, setShow] = useState<Number>(0)
+    const [read, setRead] = useState(true)
 
 
-    const enterLoading = (index: number) => {
-        setLoadings((prevLoadings) => {
-            const newLoadings = [...prevLoadings];
-            newLoadings[index] = true;
-            return newLoadings;
-        });
-        setTimeout(() => {
-            setLoadings((prevLoadings) => {
-                const newLoadings = [...prevLoadings];
-                newLoadings[index] = false;
-                return newLoadings;
-            });
-        }, 6000);
+
+    const generateRandomNumber = () => {
+        // Generate a random number between 0 and 10^(length) - 1
+        const randomNum = Math.floor(Math.random() * (Number(quotes.length)));
+        console.log("randomNum  ", randomNum);
+        setShow(randomNum)
+    }
+
+
+    const generate = async () => {
+        setLoadings(true)
+        try {
+            const url = "https://groupcoder-nestjs.vercel.app/quotes"
+            const api = await fetch(url, {
+                method: "GET",
+                headers: {
+                    "content-type": "application/json"
+                }
+            })
+
+            if (!api.ok) {
+                console.log("generate quotes error");
+            }
+
+            const data = await api.json();
+
+
+
+            setQuotes(data)
+            // setQlength(data.length)
+            console.log("generate quotes data =>", data);
+            setLoadings(false)
+        } catch (error) {
+            console.log("generate quotes error =>", error);
+        } finally {
+            setLoadings(false)
+        }
+
+
+
     };
-    const logoutLoading = (index: number) => {
-        setLogoutLoadings((prevLoadings) => {
-            const newLoadings = [...prevLoadings];
-            newLoadings[index] = true;
-            return newLoadings;
-        });
-        setTimeout(() => {
-            setLogoutLoadings((prevLoadings) => {
-                const newLoadings = [...prevLoadings];
-                newLoadings[index] = false;
-                return newLoadings;
-            });
-        }, 6000);
-    };
+    // console.log("qoutes state data =>",quotes[0].quote);
+
+
+    useEffect(() => {
+        generate()
+    }, [])
+
+
+    const createQuote = async (value: any) => {
+        setLoadings(true)
+        console.log("working", value);
+
+        try {
+
+
+            const url = "https://groupcoder-nestjs.vercel.app/quotes"
+            const api = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "content-type": "application/json"
+                },
+                body: JSON.stringify({
+                    quote: value.quote,
+                    writter: value.writter
+                })
+            })
+
+            if (!api.ok) {
+                message.error("something went wrong")
+                return null
+            }
+
+            message.success("Created successful");
+            setLoadings(false)
+        } catch (error) {
+            message.error("somthing went wrong")
+            console.log("createQuotte error =>", error);
+        }
+        finally {
+            setLoadings(false)
+        }
+    }
+
+
     const handleChange = (value: string) => {
         console.log(`selected ${value}`);
+        if (value !== "read") {
+            setRead(false)
+        } else {
+            setRead(true)
+        }
     };
+
+    console.log("true-------", read);
     return (
         <Fragment>
-            <div className='bg-red-400 h-[90vh] w-full flex items-center'>
-                {/* <nav className='flex justify-between p-5 bg-red-800 justify-center textalign-center'>
-      <div className='flex gap-4'>
-        <span className='border border-dotted lg:border-4 md:border-4 sm:border-4  rounded-[50%] p-2 lg:text-2xl sm:text-xl font-bold text-white'>G<span className='text-cyan-400'>C</span></span>
-        <span className='text-white lg:text-3xl sm:text-xl mt-2  font-bold italic' style={{textShadow:" green"}}>Group<span className='text-cyan-400 italic'>Coder</span></span>
-      </div>
-      <div className='flex gap-2'>
-      <Avatar size="large" icon={<UserOutlined />} />
-        <Button type="primary" loading={logoutloadings[0]} onClick={() => logoutLoading(0)}>
-          Logout
-        </Button>
-      </div>
-    </nav> */}
-                <div className='bg-slate-400 h-[70vh] w-[80%] rounded-lg mx-auto  p-5'>
-                    <nav className='flex justify-between bg-slate-500 p-2 rounded-lg items-center'>
-                        <Select
-                            defaultValue="Quotes Type"
-                            style={{ width: 120 }}
-                            onChange={handleChange}
-                            options={[
-                                { value: 'Motivational', label: 'Motivational' },
-                                { value: 'Inspirational', label: 'Inspirational' },
-                                { value: 'Love', label: 'Love Quotes' },
-                                { value: 'Sad', label: 'Sad Quotes' },
-                                { value: 'Funny', label: 'Funny Quotes' },
-                            ]}
-                        />
-                        <Button type="primary" loading={loadings[0]} onClick={() => enterLoading(0)}>
-                            Generate Quotes
-                        </Button>
-                    </nav>
-                    <section className=' relative bg-white w-full mt-10 h-[70%] p-5 rounded'>
-                        <p className='text-xl font-semibold'>Lorem, ipsum dolor sit amet consectetur adipisicing elit. Officia excepturi similique accusantium dolor? Cumque praesentium autem reiciendis sint enim laudantium?</p>
-                        <span className='absolute end-5 bottom-5'>Created by <span className='text-red-700'>Vikas Kumar</span></span>
-                    </section>
+            <Form
+                onFinish={createQuote}
+            >
+                <div className='bg-red-400 h-[90vh] w-full flex items-center'>
+                    <div className='bg-slate-400 h-[70vh] w-[80%] rounded-lg mx-auto  p-5 '>
+                        {/* <div className='mb-2 flex  items-center'>
+            <Avatar style={{ backgroundColor: '#87d068' }} icon={<UserOutlined />} /> 
+            <span className='ml-2 bg-white px-3'>dfksdfjl</span>
+            </div> */}
+                        <nav className='flex justify-between bg-slate-500 p-2 rounded-lg items-center'>
+                            <Select
+                                defaultValue="Quotes Type"
+                                style={{ width: 220 }}
+                                onChange={handleChange}
+                                options={[
+                                    { value: 'read', label: 'READING MODE' },
+                                    { value: 'write', label: 'DEVELOPMENT MODE' },
+                                ]}
+                            />
+                            {
+                                read == true ? <Button type="primary" loading={loadings} onClick={generateRandomNumber}>
+                                    Generate Quotes
+                                </Button> : <Button type="primary" loading={loadings} htmlType='submit'>
+                                    Create Quotes
+                                </Button>
+                            }
+                        </nav>
+                        {read == true ? <section className=' relative bg-white w-full mt-10 h-[70%] p-5 rounded'>
+                            {quotes.length > 0 && (
+                                <p className='text-xl font-semibold'>{quotes[Number(show) ? Number(show) : 0].quote}</p>
+                            )}
+                            {quotes.length > 0 && (
+                                <span className='absolute end-5 bottom-5'>Created by <span className='text-red-700'>{show !== null && show !== undefined && quotes[Number(show)]
+                                    ? quotes[Number(show)].writter
+                                    : ''}</span></span>
+                            )}
+                        </section> :
+                            <section className=' relative bg-white w-full mt-10 h-[70%] p-5 rounded'>
+
+                                <p className='text-xl font-semibold'>
+                                    <Form.Item name='quote'>
+                                        <TextArea
+                                            showCount
+                                            maxLength={100}
+                                            minLength={10}
+                                            required
+                                            // onChange={onChange}
+                                            // status="warning"
+                                            placeholder="type your quotes or shayri....."
+                                            style={{ height: 180, resize: 'none' }}
+                                        />
+                                    </Form.Item>
+                                </p>
+
+
+                                <span className='absolute end-10 bottom-5'><span className='text-red-700'>
+                                    <Form.Item name='writter'>
+                                        <Input
+                                            required
+                                            size="large" placeholder="type your name" prefix={<UserOutlined />} />
+                                    </Form.Item>
+                                </span></span>
+                            </section>}
+                    </div>
                 </div>
-            </div>
-        </Fragment>
+            </Form>
+        </Fragment >
     )
 }
 export default ClientUI
