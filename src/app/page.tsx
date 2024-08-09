@@ -1,7 +1,19 @@
-import Image from "next/image";
+import Home from '@/components/Home'
+import QuizAnalysis from '@/components/Quiz'
+import { ACCESS_TOKEN } from '@/utils/constant'
+import { cookies } from 'next/headers'
+import React from 'react'
 
-export default function Home() {
+const page = () => {
+
+  const cookieStore = cookies()
+  const accessToken = cookieStore.get(ACCESS_TOKEN)
+
+
   return (
-    <div className="bg-red-400">this is main page</div>
-  );
+    <Home/>
+    // <QuizAnalysis/>
+  )
 }
+
+export default page

@@ -5,24 +5,52 @@ import { UserOutlined } from '@ant-design/icons';
 import TextArea from 'antd/es/input/TextArea';
 const ClientUI = () => {
     const [loadings, setLoadings] = useState<boolean>();
-    const [quotes, setQuotes] = useState<any[]>([])
+    const [quotes, setQuotes] = useState<any>([])
     const [show, setShow] = useState<Number>(0)
     const [read, setRead] = useState(true)
+  const [bgGradient, setBgGradient] = useState<string>(''); // State to hold the background gradient
+
+
+
+    const generateRandomColor = () => {
+        const letters = '0123456789ABCDEF';
+        let color = '#';
+        for (let i = 0; i < 6; i++) {
+          color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+      };
+    
+      const generateRandomGradient = () => {
+        const color1 = generateRandomColor();
+        const color2 = generateRandomColor();
+        const gradient = `linear-gradient(to right, ${color1}, ${color2})`;
+        return gradient;
+      };
+    
+      useEffect(() => {
+        setBgGradient(generateRandomGradient()); // Set the background gradient when the component mounts
+      }, []);
 
 
 
     const generateRandomNumber = () => {
         // Generate a random number between 0 and 10^(length) - 1
-        const randomNum = Math.floor(Math.random() * (Number(quotes.length)));
-        console.log("randomNum  ", randomNum);
-        setShow(randomNum)
+        setLoadings(true)
+        setTimeout(() => {
+            const randomNum = Math.floor(Math.random() * (Number(quotes.length)));
+            console.log("randomNum  ", randomNum);
+            setLoadings(false)
+            message.success("Generate random quote")
+            setShow(randomNum)
+        }, 1000)
     }
 
 
     const generate = async () => {
         setLoadings(true)
         try {
-            const url = "https://groupcoder-nestjs.vercel.app/quotes"
+            const url = "https://groupcoder-nestjs.vercel.app/quotes/random"
             const api = await fetch(url, {
                 method: "GET",
                 headers: {
@@ -36,8 +64,6 @@ const ClientUI = () => {
 
             const data = await api.json();
 
-
-
             setQuotes(data)
             // setQlength(data.length)
             console.log("generate quotes data =>", data);
@@ -47,11 +73,7 @@ const ClientUI = () => {
         } finally {
             setLoadings(false)
         }
-
-
-
     };
-    // console.log("qoutes state data =>",quotes[0].quote);
 
 
     useEffect(() => {
@@ -110,7 +132,7 @@ const ClientUI = () => {
             <Form
                 onFinish={createQuote}
             >
-                <div className='bg-red-400 h-[90vh] w-full flex items-center'>
+                <div className=' h-[90vh] w-full flex items-center' style={{ background: bgGradient }}>
                     <div className='bg-slate-400 h-[70vh] w-[80%] rounded-lg mx-auto  p-5 '>
                         {/* <div className='mb-2 flex  items-center'>
             <Avatar style={{ backgroundColor: '#87d068' }} icon={<UserOutlined />} /> 
@@ -136,7 +158,7 @@ const ClientUI = () => {
                         </nav>
                         {read == true ? <section className=' relative bg-white w-full mt-10 h-[70%] p-5 rounded'>
                             {quotes.length > 0 && (
-                                <p className='text-xl font-semibold'>{quotes[Number(show) ? Number(show) : 0].quote}</p>
+                                <p className='text-xl font-semibold'>{quotes.quote}</p>
                             )}
                             {quotes.length > 0 && (
                                 <span className='absolute end-5 bottom-5'>Created by <span className='text-red-700'>{show !== null && show !== undefined && quotes[Number(show)]
